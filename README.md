@@ -1,60 +1,28 @@
 # 🐍 PyWalker
 
-**PyWalker** is a Python toolset for indexing and querying codebases using OpenAI embeddings and FAISS vector search.
 
-It scans a Python project, extracts all functions (with docstrings), generates embeddings using `text-embedding-3-small`, and stores them in a searchable vector database. You can then ask natural language questions about the codebase and retrieve relevant code + answers powered by GPT-4o.
+This is my best guess at how GitHub Copilot "indexes" a repository. Create a vector database that indexes the functions of a codebase so it can use it as context for asking questions with contexts of entire codebases. 
 
----
+`walker.py` uses [`jedi`](https://github.com/davidhalter/jedi) to walk a python codebase and generates embeddings using OpenAI's `text-embedding-3-small` out of the python functions and directory structure of the codebase. It then stores vectors in `FAISS` for local and fast semantic search, to be then used as retrieval-augmented context to ask GPT 4o questions pertaining to the codebase, and suggest either code improvements for said codebase, or generates code that would leverage said codebase(s). 
 
-## 🚀 Features
-
-- ✅ Parse Python functions with [`jedi`](https://github.com/davidhalter/jedi)  
-- ✅ Generate embeddings with OpenAI's `text-embedding-3-small`  
-- ✅ Store vectors in `FAISS` for local, fast semantic search  
-- ✅ Ask questions using GPT-4o with retrieval-augmented context  
-- ✅ Supports multiple codebases via subdirectory indexing
-
----
-
-## 📦 Requirements
+# How to Use
 
 ```bash
-pip install openai faiss-cpu jedi numpy
-```
+pip install -r requirements.txt
+python -m venv . && source bin/activate
 
-Set your OpenAI API key:
-
+# set your OPEN AI API key:
+export OPENAI_API_KEY="sk-...."
 ```bash
-export OPENAI_API_KEY=sk-...
-```
 
----
-
-## 📂 Project Structure
-
-```
-pywalker/
-├── walker.py       # Indexes a Python codebase
-├── query.py        # Searches and queries an indexed codebase
-└── vector/         # Contains FAISS indices and metadata per codebase
-    └── fastapi/
-        ├── faiss.index
-        └── metadata.jsonl
-```
-
----
-
-## 🛠️ Usage
-
-### 1. Clone a Python Project
-
-```bash
-git clone https://github.com/fastapi/fastapi.git
-```
 
 ### 2. Index the Project
 
+Clone a project
+
 ```bash
+git clone https://github.com/fastapi/fastapi.git
+
 python walker.py ./fastapi
 ```
 
@@ -63,26 +31,19 @@ This creates a folder at `./vector/fastapi/` containing `faiss.index` and `metad
 ### 3. Ask a Question
 
 ```bash
-python query.py "How does FastAPI define routes?" --codebase fastapi --answer
+python query.py "How does FastAPI define routes?" --codebase fastapi 
 ```
+This will return just the raw embeddings.
 
-Use `--answer` to get a GPT-4o-generated response based on the most relevant code snippets.
+Use `--answer` to get a GPT-4o-generated answer with the embeddings as context. 
 
 ---
 
-## 🧠 Example Queries
+## Example Queries
 
 ```text
-What operations are supported on quaternions in sympy?
 How does FastAPI handle dependency injection?
-Where is the __mul__ method defined in the Quaternion class?
 ```
 
 ---
 
-## 📌 Notes
-
-- Embedding model used: `text-embedding-3-small` (cheap + fast)
-- GPT model used: `gpt-4o` (or switch to `gpt-3.5-turbo`)
-- Vector search: `FAISS.IndexFlatL2`
-- Output files per project: `faiss.index` + `metadata.jsonl`

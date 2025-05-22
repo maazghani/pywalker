@@ -1,8 +1,9 @@
+import os
 import json
 import faiss
 import openai
 import numpy as np
-import os
+import argparse
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -11,9 +12,12 @@ CHAT_MODEL = "gpt-4o"
 TOP_K = 5
 
 
-def load_index(codebase_dir):
-    index_path = os.path.join("vector", codebase_dir, "faiss.index")
-    meta_path = os.path.join("vector", codebase_dir, "metadata.jsonl")
+def load_index(codebase_name):
+    index_path = os.path.join("vector", codebase_name, "faiss.index")
+    meta_path = os.path.join("vector", codebase_name, "metadata.jsonl")
+
+    if not os.path.exists(index_path) or not os.path.exists(meta_path):
+        raise FileNotFoundError(f"Missing vector index or metadata for: {codebase_name}")
 
     index = faiss.read_index(index_path)
     metadata = []
@@ -40,10 +44,18 @@ def search_index(index, metadata, query_vector, top_k=TOP_K):
     return results
 
 
-def format_context(results):
-    return "\n\n".join(
-        f"# From: {r['source']}\n{r['code']}\n'''{r['doc']}'''" for r in results
-    )
+def load_snippet(entry):
+    if entry["type"] == "function":
+        return f"# From: {entry['source']}\n{entry['code']}\n'''{entry['doc']}'''"
+    elif entry["type"] == "file":
+        try:
+            with open(entry["source"], "r", encoding="utf-8") as f:
+                contents = f.read()
+            return f"# From file: {entry['source']}\n{contents}"
+        except Exception as e:
+            return f"# Could not load file: {entry['source']} — {e}"
+    else:
+        return ""
 
 
 def ask_gpt(context, question):
@@ -59,7 +71,6 @@ def ask_gpt(context, question):
 
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser(description="Query a vectorized codebase with GPT-4o.")
     parser.add_argument("question", help="Your natural language question about the codebase")
     parser.add_argument("--codebase", required=True, help="Name of the codebase folder under ./vector/")
@@ -71,12 +82,14 @@ if __name__ == "__main__":
     query_vec = embed_query(args.question)
     top_chunks = search_index(index, metadata, query_vec)
 
+    snippets = [load_snippet(entry) for entry in top_chunks]
+    context = "\n\n".join(snippets)
+
     print("\n📚 Top Relevant Code Snippets:")
-    for i, r in enumerate(top_chunks):
-        print(f"\n--- [#{i+1}] {r['source']} ---\n{r['code']}\n'''{r['doc']}'''\n")
+    for i, snippet in enumerate(snippets):
+        print(f"\n--- [#{i+1}] ---\n{snippet}\n")
 
     if args.answer:
         print("🤖 Asking GPT-4o...")
-        context = format_context(top_chunks)
         answer = ask_gpt(context, args.question)
         print("\n💬 GPT-4o Answer:\n" + answer)
