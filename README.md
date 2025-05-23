@@ -17,10 +17,10 @@ export OPENAI_API_KEY="sk-...."
 
 ### 2. Index the Project
 ```bash
-Clone a project
-
+# clone a project
 git clone https://github.com/fastapi/fastapi.git
 
+# run pywalker
 python walker.py ./fastapi
 ```
 
