@@ -13,12 +13,12 @@ python -m venv . && source bin/activate
 
 # set your OPEN AI API key:
 export OPENAI_API_KEY="sk-...."
+```
 
 ### 2. Index the Project
-
+```bash
 Clone a project
 
-```bash
 git clone https://github.com/fastapi/fastapi.git
 
 python walker.py ./fastapi
