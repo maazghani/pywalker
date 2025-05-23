@@ -4,6 +4,7 @@
     "ghcr.io/tailscale/codespace/tailscale": {
     "version": "latest"
     },
-    "ghcr.io/devcontainers/features/sshd:1": {}
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {}
   }
 }
