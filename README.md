@@ -13,8 +13,6 @@ python -m venv . && source bin/activate
 
 # set your OPEN AI API key:
 export OPENAI_API_KEY="sk-...."
-```bash
-
 
 ### 2. Index the Project
 
