@@ -8,7 +8,7 @@ import argparse
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 EMBED_MODEL = "text-embedding-3-small"
-CHAT_MODEL = "gpt-4o"
+CHAT_MODEL = "gpt-4o-mini-2024-07-18"
 TOP_K = 5
 
 
@@ -77,7 +77,6 @@ if __name__ == "__main__":
     parser.add_argument("--answer", action="store_true", help="Use GPT-4o to answer the question")
     args = parser.parse_args()
 
-    print(f"🔍 Searching in `{args.codebase}` for: {args.question}")
     index, metadata = load_index(args.codebase)
     query_vec = embed_query(args.question)
     top_chunks = search_index(index, metadata, query_vec)
@@ -85,11 +84,10 @@ if __name__ == "__main__":
     snippets = [load_snippet(entry) for entry in top_chunks]
     context = "\n\n".join(snippets)
 
-    print("\n📚 Top Relevant Code Snippets:")
-    for i, snippet in enumerate(snippets):
-        print(f"\n--- [#{i+1}] ---\n{snippet}\n")
-
     if args.answer:
-        print("🤖 Asking GPT-4o...")
-        answer = ask_gpt(context, args.question)
-        print("\n💬 GPT-4o Answer:\n" + answer)
+        print(ask_gpt(context, args.question))
+    else:
+        print(f"🔍 Searching in `{args.codebase}` for: {args.question}")
+        print("\n📚 Top Relevant Code Snippets:")
+        for i, snippet in enumerate(snippets):
+            print(f"\n--- [#{i+1}] ---\n{snippet}\n")
