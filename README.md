@@ -1,4 +1,4 @@
-# 🐍 PyWalker
+# PyWalker
 
 
 This is my best guess at how GitHub Copilot "indexes" a repository. Create a vector database that indexes the functions of a codebase so it can use it as context for asking questions with contexts of entire codebases. 
